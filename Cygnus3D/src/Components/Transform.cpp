@@ -1,10 +1,8 @@
 #include "Transform.h"
-#include <iostream>
 
 namespace Cygnus3D {
 		Transform::Transform(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale) {
 			m_position = position;
-			m_oldPosition = m_position;
 			m_scale = scale;
 			m_rotation = rotation;
 
@@ -94,46 +92,26 @@ namespace Cygnus3D {
 
 		void Transform::updateTransform() {
 
-			if (m_hasChanged) {
+			if (m_hasChanged){
 
-				m_transform = glm::mat4(1.0f);	
+				m_transform = { m_scale.x, 0, 0, 0,
+								0, m_scale.y, 0, 0,
+								0, 0, m_scale.z, 0,
+								m_position.x, m_position.y, m_position.z, 1.0f };
 
-				if (m_parent && m_position == m_oldPosition && m_scale == m_oldScale && m_rotation == m_oldRotation) {
-					m_transform = m_oldParentTransform * m_rotationMatrix;
-				}
-				else {
+				m_transform = m_transform * m_rotationMatrix;
 
-					m_transform = { m_scale.x, 0, 0, 0,
-									0, m_scale.y, 0, 0,
-									0, 0, m_scale.z, 0,
-									m_position.x, m_position.y, m_position.z, 1.0f };
+				if (m_parent) m_transform = m_parent->getTransformMatrix() * m_transform;
 
-					m_transform = m_transform * m_rotationMatrix;
-
-					if (m_parent) {
-						m_transform = m_parent->getTransformMatrix() * m_transform;
-					}
-				}
-
-				m_oldPosition = m_position;
-				m_oldScale = m_scale;
-				m_oldRotation = m_rotation;
 				m_hasChanged = false;
+
 			}
+
 		}
 
 		glm::mat4 Transform::getTransformMatrix() {
 
-			if (m_parent && m_oldParentTransform != m_parent->getTransformMatrix()) {
-				m_hasChanged = true;
-				m_oldParentTransform = m_parent->getTransformMatrix();
-			}else if (m_position != m_oldPosition || m_scale != m_oldScale) {
-				m_hasChanged = true;
-			}
-
-			if (m_hasChanged) {
-				updateTransform();
-			}
+			updateTransform();
 
 			return m_transform;
 		}

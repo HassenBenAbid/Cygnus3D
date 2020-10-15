@@ -143,12 +143,6 @@
     <ClInclude Include="src\Components\Renderer\Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Components\Lighting\DirectionalLight.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Components\Lighting\PointLight.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Components\Lighting\Light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -225,5 +219,6 @@
     <None Include="resources\shaders\postprocessing.vert" />
     <None Include="resources\shaders\postprocessing.frag" />
     <None Include="resources\shaders\basicShader.geo" />
+    <None Include="resources\shaders\mainShader.frag" />
   </ItemGroup>
 </Project>

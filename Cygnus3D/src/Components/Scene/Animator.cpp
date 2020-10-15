@@ -1,5 +1,4 @@
 #include "Animator.h"
-#include <iostream>
 
 namespace Cygnus3D {
 
@@ -7,12 +6,12 @@ namespace Cygnus3D {
 		m_currentAnimation = 0;
 	}
 
-	void Animator::update(float deltaTime, glm::mat4 inverseNode) {
+	void Animator::update(float deltaTime) {
 		glm::mat4 parentMatrix = glm::mat4(1.0f);
-		updateJointTransform(deltaTime, m_rootJoint, parentMatrix, inverseNode);
+		updateJointTransform(m_ticksPerSecond[m_currentAnimation] * deltaTime, m_rootJoint, parentMatrix);
 	}
 
-	void Animator::updateJointTransform(float DeltaTime, Joint *joint, glm::mat4 parentMatrix, glm::mat4 inverseNode) {
+	void Animator::updateJointTransform(float DeltaTime, Joint *joint, glm::mat4 parentMatrix) {
 
 		if (m_animate) {
 			glm::mat4 globalTransformation = glm::mat4(1.f);
@@ -22,7 +21,7 @@ namespace Cygnus3D {
 				globalTransformation = parentMatrix * joint->getJointTransform(DeltaTime, m_currentAnimation);
 
 				unsigned int boneIndex = m_boneMapping[joint->m_name];
-				m_boneInfo[boneIndex]->finalTransformation = globalTransformation * m_boneInfo[boneIndex]->boneOffset;
+				m_boneInfo[boneIndex]->finalTransformation = glm::inverse(m_inverseGlobal) * globalTransformation * m_boneInfo[boneIndex]->boneOffset;
 
 			}
 			else {
@@ -30,7 +29,7 @@ namespace Cygnus3D {
 			}
 
 			for (int i = 0; i < joint->m_children.size(); i++) {
-				updateJointTransform(DeltaTime, joint->m_children[i], globalTransformation, inverseNode);
+				updateJointTransform(DeltaTime, joint->m_children[i], globalTransformation);
 			}
 		}
 
@@ -55,6 +54,30 @@ namespace Cygnus3D {
 		}
 
 		return transformations;
+	}
+
+	void Animator::resetBindPose() {
+		updateResetJoint(m_rootJoint);
+	}
+
+	void Animator::updateResetJoint(Joint *joint) {
+
+		glm::mat4 globalTransformation = glm::mat4(1.f);
+		m_animate = false;
+
+		if (m_boneMapping.find(joint->m_name) != m_boneMapping.end()) {
+		
+			unsigned int boneIndex = m_boneMapping[joint->m_name];
+	
+
+			m_boneInfo[boneIndex]->finalTransformation = m_inverseGlobal;
+		
+		}
+		
+		for (int i = 0; i < joint->m_children.size(); i++) {
+			updateResetJoint(joint->m_children[i]);
+		}
+
 	}
 
 }

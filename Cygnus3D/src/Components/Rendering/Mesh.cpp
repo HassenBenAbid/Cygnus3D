@@ -1,5 +1,4 @@
 #include "Mesh.h"
-#include <iostream>
 
 namespace Cygnus3D {
 
@@ -138,80 +137,6 @@ namespace Cygnus3D {
 		}
 
 		glBindVertexArray(0);
-
-		//std::vector<float> data;
-		//
-		//for (int i = 0; i < m_positions.size(); i++) {
-		//	data.push_back(m_positions[i].x);
-		//	data.push_back(m_positions[i].y);
-		//	data.push_back(m_positions[i].z);
-		//}
-		//
-		//for (int i = 0; i < m_texCoords.size(); i++) {
-		//	data.push_back(m_texCoords[i].x);
-		//	data.push_back(m_texCoords[i].y);
-		//}
-		//
-		//for (int i = 0; i < m_normals.size(); i++) {
-		//	data.push_back(m_normals[i].x);
-		//	data.push_back(m_normals[i].y);
-		//	data.push_back(m_normals[i].z);
-		//}
-		//
-		//for (int i = 0; i < m_bonesID.size(); i++) {
-		//
-		//	data.push_back(m_bonesID[i].x);
-		//	data.push_back(m_bonesID[i].y);
-		//	data.push_back(m_bonesID[i].z);
-		//}
-		//
-		//for (int i = 0; i < m_bonesWeight.size(); i++) {
-		//	data.push_back(m_bonesWeight[i].x);
-		//	data.push_back(m_bonesWeight[i].y);
-		//	data.push_back(m_bonesWeight[i].z);
-		//}
-		//
-		//glBindVertexArray(vao);
-		//glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		//glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), &data[0], GL_STATIC_DRAW);
-		//
-		//if (m_indices.size() > 0) {
-		//	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vio);
-		//	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(unsigned int), &m_indices[0], GL_STATIC_DRAW);
-		//}
-		//
-		//size_t offset = 0;
-		//glEnableVertexAttribArray(POSITION_LOCATION);
-		//glVertexAttribPointer(POSITION_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)offset);
-		//offset += m_positions.size() * sizeof(glm::vec3);
-		//
-		//if (m_texCoords.size() > 0) {
-		//	glEnableVertexAttribArray(TEXCOORD_LOCATION);
-		//	glVertexAttribPointer(TEXCOORD_LOCATION, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)offset);
-		//	offset += m_texCoords.size() * sizeof(glm::vec2);
-		//}
-		//
-		//if (m_normals.size() > 0) {
-		//	glEnableVertexAttribArray(NORMAL_LOCATION);
-		//	glVertexAttribPointer(NORMAL_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)offset);
-		//	offset += m_normals.size() * sizeof(glm::vec3);
-		//}
-		//
-		//if (m_bonesID.size() > 0) {
-		//	m_hasBones = true;
-		//
-		//	glEnableVertexAttribArray(BONES_ID_LOCATION);
-		//	glVertexAttribIPointer(BONES_ID_LOCATION, 3, GL_INT, 0, (GLvoid*)offset);
-		//	offset += m_bonesID.size() * sizeof(glm::ivec3);
-		//}
-		//
-		//if (m_bonesWeight.size() > 0) {
-		//	glEnableVertexAttribArray(BONES_WEIGHT_LOCATION);
-		//	glVertexAttribPointer(BONES_WEIGHT_LOCATION, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)offset);
-		//	offset += m_bonesWeight.size() * sizeof(glm::ivec3);
-		//}
-		//
-		//glBindVertexArray(0);
 
 	}
 }

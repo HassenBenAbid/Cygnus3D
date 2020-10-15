@@ -1,16 +1,34 @@
 #pragma once
 
+#include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 
 namespace Cygnus3D {
-	class Light {
 
-	public:
+	enum lightTypes {
+		DIRECTIONAL_LIGHT,
+		POINT_LIGHT,
+		SPOT_LIGHT
+	};
 
-		static glm::vec3 ambient;
+	struct Light {
 
-		glm::vec3 diffuse;
-		glm::vec3 specular;
+		Light(lightTypes Type);
 
+		glm::vec4 color;
+
+		glm::vec3 position;
+		float range;
+		
+		glm::vec3 direction;
+		float intensity;
+		
+		
+		float spotLightAngle = 0;
+		bool enabled;
+		lightTypes type ;
+
+		float PADDING;
 	};
 }

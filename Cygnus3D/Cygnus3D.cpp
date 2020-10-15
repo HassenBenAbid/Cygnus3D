@@ -50,16 +50,16 @@ int main() {
 
 	///gameobjects
 	Node *node = new Node(new Cube(), new Material());
-	node->getMaterial()->setColor(glm::vec3(0.0f, 1.0f, 0.0f));
+	node->getMaterial()->diffuseColor = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
 	node->setPosition(glm::vec3(0.0f, 0.0f, -3.0f));
-	node->getMaterial()->setSpecularMap(texture2);
-	node->getMaterial()->setShininess(20.0f);
+	node->getMaterial()->setSpecularTexture(texture2);
+	node->getMaterial()->specularPower = 20.0f;
 	
 	Node *node2 = new Node(new Cube(), new Material());
 	node2->setPosition(glm::vec3(2.0f, 0.0f, 2.0f));
-	node2->getMaterial()->setTexture(texture);
-	node2->getMaterial()->setSpecularMap(texture2);
-	node2->getMaterial()->setShininess(20.0f);
+	node2->getMaterial()->setDiffuseTexture(texture);
+	node2->getMaterial()->setSpecularTexture(texture2);
+	node2->getMaterial()->specularPower = 20.0f;
 
 	Node *modelNode = MeshLoader::loadMesh("resources/Models/backpack/backpack.obj", false);
 	//modelNode->createBoxCollider(1.0f, currentWorld);
@@ -67,12 +67,12 @@ int main() {
 	Node *floor = new Node(new Cube(), new Material());
 	floor->createBoxCollider(0.0f, currentWorld);
 	floor->setPosition(glm::vec3(0, -2.0f, 0));
-	floor->getMaterial()->setColor(glm::vec3(1.0f, 1.0f, 1.0f));
+	floor->getMaterial()->diffuseColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	floor->setScale(glm::vec3(10.0f, 0.2f, 10.0f));
 
 	//sphere
 	Node *sphereNode = new Node(new Sphere(50, 50), new Material());
-	sphereNode->getMaterial()->setColor(glm::vec3(1.0f, 0.5f, 0.0f));
+	sphereNode->getMaterial()->diffuseColor = glm::vec4(1.0f, 0.5f, 0.0f, 1.0f);
 	sphereNode->setPosition(glm::vec3(0.0f, 3.0f, 0.0f));
 
 	Node *building = MeshLoader::loadMesh("resources/Models/doomGuard/boblampclean.md5mesh");
@@ -80,20 +80,34 @@ int main() {
 	building->setPosition(glm::vec3(0.0f, -1.5f, 0.0f));
 
 	///lights
-	Light::ambient = glm::vec3(0.3f, 0.3f, 0.3f);
+	Renderer::globalAmbient = glm::vec4(0.15f, 0.15f, 0.15f, 1.0f);
 
-	DirectionalLight *dirLight = new DirectionalLight();
-	dirLight->diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
-	dirLight->specular = glm::vec3(1.0f, 1.0f, 1.0f);
-	dirLight->direction = glm::vec3(-0.2f, -1.0f, -0.3f);
+	Light *dirLight = new Light(DIRECTIONAL_LIGHT);
+	dirLight->intensity = 1.0f;
+	dirLight->color = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
+	dirLight->direction = glm::vec3(0.0f, -1.0f, 0.0f);
 
-	PointLight *pointLight = new PointLight();
-	pointLight->position = glm::vec3(0.0f, 0.0f, -2.0f);
-	pointLight->diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
-	pointLight->specular = glm::vec3(1.0f, 1.0f, 1.0f);
-	pointLight->constant = 1.0f;
-	pointLight->linear = 0.07f;
-	pointLight->quadratic = 0.017f;
+	
+	Light *pointLight = new Light(POINT_LIGHT);
+	pointLight->color = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+	pointLight->position = glm::vec3(2.0f, 1.0f, 0.0f);
+	pointLight->range = 5.0f;
+
+	std::cout << pointLight->color.x << "|" << pointLight->color.y << std::endl;
+
+	Light *greenPointLight = new Light(POINT_LIGHT);
+	greenPointLight->color = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+	greenPointLight->position = glm::vec3(1.0f, 2.0f, 0.0f);
+	greenPointLight->range = 5.0f;
+
+	Light *bluePointLight = new Light(POINT_LIGHT);
+	bluePointLight->color = glm::vec4(0.0f, 0.0f, 1.0f, 0.0f);
+	bluePointLight->position = glm::vec3(0.0f, 2.0f, 0.0f);
+	bluePointLight->range = 5.0f;
+
+	//pointLight->constant = 1.0f;
+	//pointLight->linear = 0.07f;
+	//pointLight->quadratic = 0.017f;
 
 	///Post-Processing
 	PostProcessing::init(WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -102,41 +116,20 @@ int main() {
 	///renderer
 	Renderer *renderer = new Renderer();
 	renderer->setCamera(camera);
-	renderer->setSkybox(skyboxTexture);
+	//renderer->setSkybox(skyboxTexture);
 	renderer->init();
-	renderer->pushDirLight(dirLight);
-	renderer->pushPointLight(pointLight);
-	//renderer->pushRender(node);
-	//renderer->pushRender(node2);
-	//renderer->pushRender(modelNode);
-	//renderer->pushRender(sphereNode);
-	//renderer->pushRender(floor);
-	renderer->pushRender(building);
 
-	//unsigned int count;
-	//glm::mat4 *transforms = building->getAnimator()->getBonesTransformation(count);
-	//for (int i = 0; i < count; i++) {
-	//	std::cout << transforms[i][0][0] << " / ";
-	//	std::cout << transforms[i][0][1] << " / ";
-	//	std::cout << transforms[i][0][2] << " / ";
-	//	std::cout << transforms[i][0][3] << std::endl;
-	//
-	//	std::cout << transforms[i][1][0] << " / ";
-	//	std::cout << transforms[i][1][1] << " / ";
-	//	std::cout << transforms[i][1][2] << " / ";
-	//	std::cout << transforms[i][1][3] << std::endl;
-	//
-	//	std::cout << transforms[i][2][0] << " / ";
-	//	std::cout << transforms[i][2][1] << " / ";
-	//	std::cout << transforms[i][2][2] << " / ";
-	//	std::cout << transforms[i][2][3] << std::endl;
-	//
-	//	std::cout << transforms[i][3][0] << " / ";
-	//	std::cout << transforms[i][3][1] << " / ";
-	//	std::cout << transforms[i][3][2] << " / ";
-	//	std::cout << transforms[i][3][3] << std::endl;
-	//	std::cout << "||" << std::endl;
-	//}
+	renderer->pushLight(dirLight);
+	renderer->pushLight(pointLight);
+	renderer->pushLight(greenPointLight);
+	renderer->pushLight(bluePointLight);
+
+	renderer->pushRender(node);
+	renderer->pushRender(node2);
+	renderer->pushRender(modelNode);
+	//renderer->pushRender(sphereNode);
+	renderer->pushRender(floor);
+	//renderer->pushRender(building);
 
 	///ImGui
 	DebugInterface *debug = new DebugInterface();
@@ -155,8 +148,8 @@ int main() {
 	modelNode->rotate(glm::vec3(0.0f, 0.0f, 1.0f), 90.0f);
 	node->createBoxCollider(1.0f, currentWorld);
 	sphereNode->createSphereCollider(1.0f, currentWorld);
-	//building->rotate(glm::vec3(1.0f, 0.0f, 0.0f), 90.0f);
-	building->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+	//building->rotate(glm::vec3(0.0f, 0.0f, 1.0f), -90.0f);
+	building->setScale(glm::vec3(0.05f, 0.05f, 0.05f));
 
 	while (!window->closed())
 	{
@@ -194,17 +187,10 @@ int main() {
 
 		debug->enableInterfaceTransformation(collidedNode);
 
-
-		//node2->rotate(glm::vec3(1.0f, .0f, 0.0f), 0.0005f);
-		//building->rotate(glm::vec3(0.0f, 0.0f, 1.0f), 0.2f);
-		//modelNode->getLocalPosition().x += 0.001f;
-
 		if (InputManager::isKeyPressed(GLFW_KEY_BACKSPACE)) {
 			inputMode = !inputMode;
 			InputManager::inputMode(window->getWindow(), inputMode);
 			currentWorld->setSimulationState(inputMode);
-
-			//building->rotate(glm::vec3(0.0f, 1.0f, 0.0f), 90.0f);
 		}
 
 		if (InputManager::isKeyPressed(GLFW_KEY_F1)) drawer->activate(!drawer->getState());
@@ -212,7 +198,7 @@ int main() {
 
 		currentWorld->updateWorld(window->getDeltaTime());
 		renderer->update(window->getDeltaTime());
-
+		 
 		currentWorld->getWorld()->debugDrawWorld();
 
 		renderer->render(drawer);
@@ -226,6 +212,7 @@ int main() {
 		window->clear();
 	}
 
+	renderer->clean();
 	currentWorld->clean();
 	debug->clean();
 

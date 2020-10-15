@@ -1,4 +1,4 @@
-#version 420 core
+#version 430 core
 
 struct Material {
 	
@@ -81,14 +81,14 @@ void main(){
 	
 		vec3 ambient = vec3(0.2f, 0.2f, 0.2f) * vec3(diffuseTexSample);
 		vec3 result = ambient;
-		//
-		//result += calcDirLight(vec3(diffuseTexSample), vec3(specularTexSample), material.shininess, dirLight, norm, viewDir);
-		//result += calcPointLight(vec3(diffuseTexSample), vec3(specularTexSample), material.shininess, pointLight, norm, viewDir);
+		
+		result += calcDirLight(vec3(diffuseTexSample), vec3(specularTexSample), material.shininess, dirLight, norm, viewDir);
+		result += calcPointLight(vec3(diffuseTexSample), vec3(specularTexSample), material.shininess, pointLight, norm, viewDir);
 	
 		result = vec3(diffuseTexSample);
 	
 		if (diffuseTexSample.a < 0.1f) discard;
-		if (result == vec3(0, 0, 0)) result = vec3(1.0f, 1.0f, 1.0f);
+		//if (result == vec3(0, 0, 0)) result = vec3(1.0f, 1.0f, 1.0f);
 	
 		fragColor = vec4(result * color, diffuseTexSample.a);
 	

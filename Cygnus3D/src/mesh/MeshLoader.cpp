@@ -19,7 +19,7 @@ namespace Cygnus3D {
 		unsigned int flipState = 0;
 		if (flipUv) flipState = aiProcess_FlipUVs;
 
-		aiScene const *aScene = importer.ReadFile(path, aiProcess_Triangulate | flipState | aiProcess_JoinIdenticalVertices | aiProcess_ConvertToLeftHanded);
+		aiScene const *aScene = importer.ReadFile(path, aiProcess_Triangulate | flipState | aiProcess_JoinIdenticalVertices);
 
 		if (!aScene || aScene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !aScene->mRootNode) {
 			std::cout << "ASSIMP FAILED TO LOAD SCENE!" << std::endl;
@@ -35,13 +35,19 @@ namespace Cygnus3D {
 		}
 
 		Animator *anim = new Animator();
+
+		if (aScene->HasAnimations()) anim->m_rootJoint = createJoints(aScene->mRootNode);
+
 		Node *node = MeshLoader::processNode(aScene->mRootNode, aScene, allMaterials, anim);
 
 		if (aScene->HasAnimations()) {
 			anim->m_animationCount = aScene->mNumAnimations;
-			anim->m_inverseGlobal = castGlm(aScene->mRootNode->mTransformation, false);
+			anim->m_inverseGlobal = castGlm(aScene->mRootNode->mTransformation, true);
 			anim->m_inverseGlobal = glm::inverse(anim->m_inverseGlobal);
 
+			for (int i = 0; i < aScene->mNumAnimations; i++) anim->m_ticksPerSecond.push_back(aScene->mAnimations[i]->mTicksPerSecond);
+
+			m_currentJoints.clear();
 			node->setAnimator(anim);
 
 		}
@@ -63,9 +69,7 @@ namespace Cygnus3D {
 
 			if (aMesh->HasBones()) {
 				loadBones(mesh, aMesh, anim);
-				anim->m_rootJoint = createJoints(aScene->mRootNode);
 				loadBonesAnimation(aScene);
-				m_currentJoints.clear();
 			}
 
 			mesh->generate();
@@ -138,7 +142,7 @@ namespace Cygnus3D {
 
 			Texture *texture = new Texture(MeshLoader::parseDirectory(path, file).c_str());
 			if (texture) {
-				material->setTexture(texture);
+				material->setDiffuseTexture(texture);
 			}
 
 			if (aMaterial->GetTextureCount(aiTextureType_SPECULAR) > 0) {
@@ -148,13 +152,13 @@ namespace Cygnus3D {
 
 				Texture *texture = new Texture(MeshLoader::parseDirectory(path, file).c_str());
 				if (texture) {
-					material->setSpecularMap(texture);
+					material->setSpecularTexture(texture);
 				}
 
 			}
 		}
 
-		material->setShininess(20.0f);
+		material->specularPower = 20.0f;
 
 		return material;
 
@@ -163,6 +167,7 @@ namespace Cygnus3D {
 	void MeshLoader::loadBones(Mesh *mesh, aiMesh *aMesh, Animator *anim) {
 
 		unsigned int boneIndex = 0;
+		boneIndex = anim->m_boneMapping.size();
 
 		mesh->m_bonesWeight.resize(aMesh->mNumVertices);
 		mesh->m_bonesID.resize(aMesh->mNumVertices);

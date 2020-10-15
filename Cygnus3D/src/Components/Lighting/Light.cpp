@@ -1,5 +1,10 @@
 #include "Light.h"
 
 namespace Cygnus3D {
-	glm::vec3 Light::ambient;
+
+	Light::Light(lightTypes lightType) {
+		type = lightType;
+		enabled = true;
+		intensity = 1.0f;
+	}
 }

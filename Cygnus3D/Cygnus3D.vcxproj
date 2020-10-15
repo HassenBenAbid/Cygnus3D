@@ -189,9 +189,7 @@
     <ClInclude Include="src\Base\Window.h" />
     <ClInclude Include="src\Components\Animation\Joint.h" />
     <ClInclude Include="src\Components\Camera.h" />
-    <ClInclude Include="src\Components\Lighting\DirectionalLight.h" />
     <ClInclude Include="src\Components\Lighting\Light.h" />
-    <ClInclude Include="src\Components\Lighting\PointLight.h" />
     <ClInclude Include="src\Components\Physics\CygnusMotionState.h" />
     <ClInclude Include="src\Components\Physics\Physics.h" />
     <ClInclude Include="src\Components\Renderer\PostProcessing.h" />
@@ -229,6 +227,7 @@
     <None Include="resources\shaders\debugShader.frag" />
     <None Include="resources\shaders\debugShader.geo" />
     <None Include="resources\shaders\debugShader.vert" />
+    <None Include="resources\shaders\mainShader.frag" />
     <None Include="resources\shaders\postprocessing.frag" />
     <None Include="resources\shaders\postprocessing.vert" />
     <None Include="resources\shaders\skybox.frag" />

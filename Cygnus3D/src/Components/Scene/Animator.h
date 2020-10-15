@@ -35,6 +35,7 @@ namespace Cygnus3D {
 
 		std::map<std::string, unsigned int> m_boneMapping;
 		std::vector<BoneInfo*> m_boneInfo;
+		std::vector<int> m_ticksPerSecond;
 
 		bool m_animate = true;
 
@@ -45,7 +46,8 @@ namespace Cygnus3D {
 
 		Animator() {};
 
-		void updateJointTransform(float DeltaTime, Joint *joint, glm::mat4 parentMatrix, glm::mat4 inverseNode);
+		void updateJointTransform(float DeltaTime, Joint *joint, glm::mat4 parentMatrix);
+		void updateResetJoint(Joint *joint);
 
 	public:
 
@@ -53,10 +55,13 @@ namespace Cygnus3D {
 
 		void start(bool state);
 		void setAnimation(unsigned int animation);
+		void resetBindPose();
+
+		bool isActive() const { return m_animate; }
 
 		std::vector<glm::mat4>  getBonesTransformation();
 
-		void update(float deltaTime, glm::mat4 inverseNode);
+		void update(float deltaTime);
 
 		glm::mat4 m_inverseGlobal;
 	};

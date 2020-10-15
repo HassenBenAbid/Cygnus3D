@@ -7,15 +7,23 @@
 
 namespace Cygnus3D {
 
+	glm::vec4 Renderer::globalAmbient;
+
 	Renderer::Renderer() {
 		
-		m_basicShader = new Shader("resources/shaders/basicShader.vert", "resources/shaders/basicShader.frag");
+		m_basicShader = new Shader("resources/shaders/basicShader.vert", "resources/shaders/mainShader.frag");
 		m_skyboxShader = new Shader("resources/shaders/skybox.vert", "resources/shaders/skybox.frag");
 
 		m_debugShader = new Shader("resources/shaders/debugShader.vert", "resources/shaders/debugShader.frag");
 
 		m_culling = false;
-		createUniformBuffer();
+		createGlobalUniformBuffer();
+
+		m_currentLight = 0;
+		createLightUniformBlock();
+
+		m_queueSize = 0;
+		//Shader *computeShader = new Shader("resources/shaders/lightCulling.comp");
 	}
 
 	Renderer::~Renderer() {
@@ -47,7 +55,7 @@ namespace Cygnus3D {
 
 	void Renderer::setSkybox(Texture *texture) {
 		m_skybox = new Node(new Cube(), new Material());
-		m_skybox->getMaterial()->m_texture = texture;
+		m_skybox->getMaterial()->setDiffuseTexture(texture);
 	}
 
 	void Renderer::renderSkybox() {
@@ -63,14 +71,14 @@ namespace Cygnus3D {
 
 			glm::mat4 view = glm::mat4(glm::mat3(m_camera->getViewMatrix()));
 			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
-			m_skybox->getMaterial()->m_texture->bind();
-			m_skyboxShader->setUniform1i("skybox", m_skybox->getMaterial()->m_texture->getTextureID());
+			m_skybox->getMaterial()->getDiffuseTexture()->bind();
+			m_skyboxShader->setUniform1i("skybox", m_skybox->getMaterial()->getDiffuseTexture()->getTextureID());
 
 			glBindVertexArray(m_skybox->getMesh()->vao);
 			glDrawElements(m_skybox->getMesh()->m_topology, m_skybox->getMesh()->m_indices.size(), GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
 			
-			m_skybox->getMaterial()->m_texture->unbind();
+			m_skybox->getMaterial()->getDiffuseTexture()->unbind();
 			m_basicShader->enable();
 
 		}
@@ -80,6 +88,8 @@ namespace Cygnus3D {
 	void Renderer::pushRender(Node *node) {
 
 		push(node);
+
+		m_queueSize = m_renderQueue.size();
 
 		sortByTexture();
 		sortByCulling();
@@ -113,7 +123,7 @@ namespace Cygnus3D {
 		do {
 			int j = lastSame;
 
-			while (!m_renderQueue[j]->getMaterial() || !m_renderQueue[j]->getMaterial()->m_texture)
+			while (!m_renderQueue[j]->getMaterial() || !m_renderQueue[j]->getMaterial()->getDiffuseTexture())
 			{
 				j++;
 				if (j >= m_renderQueue.size()) {
@@ -125,11 +135,11 @@ namespace Cygnus3D {
 				std::swap(m_renderQueue[lastSame], m_renderQueue[j]);
 			}
 
-			unsigned int textureId = m_renderQueue[lastSame]->getMaterial()->m_texture->getTextureID();
+			unsigned int textureId = m_renderQueue[lastSame]->getMaterial()->getDiffuseTexture()->getTextureID();
 			lastSame++;
 
 			for (int i = lastSame; i < m_renderQueue.size(); i++) {
-				if (m_renderQueue[i]->getMaterial() && m_renderQueue[i]->getMaterial()->m_texture && m_renderQueue[i]->getMaterial()->m_texture->getTextureID() == textureId) {
+				if (m_renderQueue[i]->getMaterial() && m_renderQueue[i]->getMaterial()->getDiffuseTexture() && m_renderQueue[i]->getMaterial()->getDiffuseTexture()->getTextureID() == textureId) {
 					if (i != lastSame) {
 						std::swap(m_renderQueue[i], m_renderQueue[lastSame]);
 						lastSame++;
@@ -153,35 +163,35 @@ namespace Cygnus3D {
 		}
 	}
 
-	void Renderer::pushDirLight(DirectionalLight *light) {
-		m_dirLightQueue.push_back(light);
-	}
+	void Renderer::pushLight(Light *light) {
+		m_lights[m_currentLight] = light;
+		m_currentLight++;
 
-	void Renderer::pushPointLight(PointLight *light) {
-		m_pointLightQueue.push_back(light);
 	}
 
 	void Renderer::updateLight() {
 
-		m_basicShader->setUniform3f("ambientLight", Light::ambient);
-		m_basicShader->setUniform3f("viewPosition", m_camera->getLocalPosition());
+		m_basicShader->setUniform4f("globalAmbient", globalAmbient);
 
-		for (int i = 0; i < m_dirLightQueue.size(); i++) {
-			m_basicShader->setUniform3f("dirLight.diffuse", m_dirLightQueue[i]->diffuse);
-			m_basicShader->setUniform3f("dirLight.specular", m_dirLightQueue[i]->specular);
-			m_basicShader->setUniform3f("dirLight.direction", m_dirLightQueue[i]->direction);
+		glBindBuffer(GL_UNIFORM_BUFFER, m_lightBlock);
+		for (int i = 0; i < m_currentLight; i++) {
+			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(Light) * i, sizeof(Light), m_lights[i]);
 		}
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-		for (int i = 0; i < m_pointLightQueue.size(); i++) {
-
-			m_basicShader->setUniform3f("pointLight.position", m_pointLightQueue[i]->position);
-			m_basicShader->setUniform3f("pointLight.diffuse",  m_pointLightQueue[i]->diffuse);
-			m_basicShader->setUniform3f("pointLight.specular", m_pointLightQueue[i]->specular);
-
-			m_basicShader->setUniform1f("pointLight.constant", m_pointLightQueue[i]->constant);
-			m_basicShader->setUniform1f("pointLight.linear",   m_pointLightQueue[i]->linear);
-			m_basicShader->setUniform1f("pointLight.quadratic",m_pointLightQueue[i]->quadratic);
-		}
+		//m_basicShader->setUniform1i("lightNumber", m_lights.size());
+		//m_basicShader->setUniform3f("viewPosition", m_camera->getLocalPosition());
+		//
+		//m_basicShader->setUniform1i("allLights[0].type", m_lights[0]->type);
+		//m_basicShader->setUniform1i("allLights[0].enabled", m_lights[0]->enabled);
+		//
+		//m_basicShader->setUniform4f("allLights[0].color", m_lights[0]->color);
+		//m_basicShader->setUniform3f("allLights[0].position", m_lights[0]->position);
+		//m_basicShader->setUniform3f("allLights[0].direction", m_lights[0]->direction);
+		//
+		//m_basicShader->setUniform1f("allLights[0].range", m_lights[0]->range);
+		//m_basicShader->setUniform1f("allLights[0].intensity", m_lights[0]->intensity);
+		//m_basicShader->setUniform1f("allLights[0].spotLightAngle", m_lights[0]->spotLightAngle);
 	}
 
 	void Renderer::updateShader(Node *node) {
@@ -191,34 +201,49 @@ namespace Cygnus3D {
 
 		if (node->getMaterial()) {
 
-			if (node->getMaterial()->m_texture) {
-				if (node->getMaterial()->m_texture != m_lastTexture) {
+			m_basicShader->setUniform1f("material.opacity", node->getMaterial()->opacity);
+			m_basicShader->setUniform1f("material.specularPower", node->getMaterial()->specularPower);
+
+			m_basicShader->setUniform4f("material.diffuseColor", node->getMaterial()->diffuseColor);
+			m_basicShader->setUniform4f("material.specularColor", node->getMaterial()->specularColor);
+			m_basicShader->setUniform4f("material.emissiveColor", node->getMaterial()->emissiveColor);
+
+			m_basicShader->setUniform1i("material.hasDiffuseTexture", node->getMaterial()->hasDiffuseTexture());
+			m_basicShader->setUniform1i("material.hasSpecularTexture", node->getMaterial()->hasSpecularTexture());
+			
+			if (node->getMaterial()->hasDiffuseTexture()) {
+
+				if (node->getMaterial()->getDiffuseTexture() != m_lastTexture) {
+
 					if (m_lastTexture) m_lastTexture->unbind();
-					m_lastTexture = node->getMaterial()->m_texture;
-					m_basicShader->setUniform1i("material.diffuse", m_lastTexture->getTextureID());
+					m_lastTexture = node->getMaterial()->getDiffuseTexture();
+					m_basicShader->setUniform1i("diffuseTexture", m_lastTexture->getTextureID());
 					m_lastTexture->bind();
 
-					if (node->getMaterial()->m_specularMap) {
+					if (node->getMaterial()->hasSpecularTexture()) {
+
 						if (m_lastSpecular) m_lastSpecular->unbind();
-						m_lastSpecular = node->getMaterial()->m_specularMap;
-						m_basicShader->setUniform1i("material.specular", m_lastSpecular->getTextureID());
+						m_lastSpecular = node->getMaterial()->getSpecularTexture();
+						m_basicShader->setUniform1i("specularTexture", m_lastSpecular->getTextureID());
 						m_lastSpecular->bind();
+
 					}
+
 				}
-			}
-			else if (m_lastTexture != nullptr) {
+
+			}else if (m_lastTexture != nullptr) {
+
 				m_lastTexture->unbind();
 				m_lastTexture = nullptr;
-				m_basicShader->setUniform1i("material.diffuse", NULL);
+				m_basicShader->setUniform1i("diffuseTexture", NULL);
 
 				if (m_lastSpecular) {
 					m_lastSpecular->unbind();
 					m_lastSpecular = nullptr;
-					m_basicShader->setUniform1i("material.specular", NULL);
+					m_basicShader->setUniform1i("specularTexture", NULL);
 				}
+
 			}
-			m_basicShader->setUniform3f("color", node->getMaterial()->m_color);
-			m_basicShader->setUniform1f("material.shininess", node->getMaterial()->m_shininess);
 
 		}
 
@@ -229,7 +254,7 @@ namespace Cygnus3D {
 	}
 
 	void Renderer::renderThisQueue(std::vector<Node*> queue) {
-		for (int i = 0; i < queue.size(); i++) {
+		for (int i = 0; i < m_queueSize; i++) {
 			if (queue[i]->getMesh()) {
 
 				if (!queue[i]->getMesh()->m_faceCulling && m_culling) {
@@ -247,27 +272,27 @@ namespace Cygnus3D {
 				glDrawElements(queue[i]->getMesh()->m_topology, queue[i]->getMesh()->m_indices.size(), GL_UNSIGNED_INT, 0);
 				glBindVertexArray(0);
 
-				if (queue[i]->isFocused()) {
-
-					glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-					glStencilMask(0x00);
-					m_basicShader->setUniform1i("singleColor", 1);
-					queue[i]->getLocalScale() += glm::vec3(0.05f, 0.05f, 0.05f);
-					
-					m_basicShader->setUniformMat4("ml_matrix", queue[i]->getTransformMatrix());
-					
-					glBindVertexArray(queue[i]->getMesh()->vao);
-					glDrawElements(queue[i]->getMesh()->m_topology, queue[i]->getMesh()->m_indices.size(), GL_UNSIGNED_INT, 0);
-					glBindVertexArray(0);	
-					
-					queue[i]->getLocalScale() -= glm::vec3(0.05f, 0.05f, 0.05f);
-					m_basicShader->setUniform1i("singleColor", 0);
-					
-					glStencilFunc(GL_ALWAYS, 1, 0xFF);
-					glStencilMask(0xFF);
-
-
-				}
+				//if (queue[i]->isFocused()) {
+				//
+				//	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+				//	glStencilMask(0x00);
+				//	m_basicShader->setUniform1i("singleColor", 1);
+				//	queue[i]->getLocalScale() += glm::vec3(0.05f, 0.05f, 0.05f);
+				//	
+				//	m_basicShader->setUniformMat4("ml_matrix", queue[i]->getTransformMatrix());
+				//	
+				//	glBindVertexArray(queue[i]->getMesh()->vao);
+				//	glDrawElements(queue[i]->getMesh()->m_topology, queue[i]->getMesh()->m_indices.size(), GL_UNSIGNED_INT, 0);
+				//	glBindVertexArray(0);	
+				//	
+				//	queue[i]->getLocalScale() -= glm::vec3(0.05f, 0.05f, 0.05f);
+				//	m_basicShader->setUniform1i("singleColor", 0);
+				//	
+				//	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+				//	glStencilMask(0xFF);
+				//
+				//
+				//}
 
 			}
 			else {
@@ -305,7 +330,7 @@ namespace Cygnus3D {
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	}
 
-	void Renderer::createUniformBuffer() {
+	void Renderer::createGlobalUniformBuffer() {
 		glGenBuffers(1, &m_uniformBuffer);
 		glBindBuffer(GL_UNIFORM_BUFFER, m_uniformBuffer);
 		glBufferData(GL_UNIFORM_BUFFER, 130, NULL, GL_STATIC_DRAW);
@@ -314,10 +339,35 @@ namespace Cygnus3D {
 		glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_uniformBuffer);
 	}
 
+	void Renderer::createLightUniformBlock() {
+
+		//m_basicShader->enable();
+		//
+		//GLuint locationUniform = glGetUniformBlockIndex(m_basicShader->getProgram(), "lightBlock");
+		//glUniformBlockBinding(m_basicShader->getProgram(), locationUniform, 10);
+
+		glGenBuffers(1, &m_lightBlock);
+		glBindBuffer(GL_UNIFORM_BUFFER, m_lightBlock);
+		glBufferData(GL_UNIFORM_BUFFER, sizeof(Light) * MAX_LIGHTS, NULL, GL_STATIC_DRAW);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+		glBindBufferBase(GL_UNIFORM_BUFFER, 1, m_lightBlock);
+
+		//m_basicShader->disable();
+	}
+
 	void Renderer::update(float deltaTime) {
 		for (int i = 0; i < m_renderQueue.size(); i++) {
 			m_renderQueue[i]->update(deltaTime);
 		}
+	}
+
+	void Renderer::clean() {
+		for (int i = 0; i <= MAX_LIGHTS; i++) {
+			delete m_lights[i];
+		}
+
+		//m_lights.clear();
 	}
 
 }

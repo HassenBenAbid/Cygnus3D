@@ -11,11 +11,11 @@ namespace Cygnus3D {
 
 		private:
 
-			glm::vec3 m_position, m_oldPosition;
-			glm::vec3 m_scale, m_oldScale;
+			glm::vec3 m_position;
+			glm::vec3 m_scale;
 
 			glm::mat4 m_rotationMatrix;
-			glm::quat m_rotation, m_oldRotation;
+			glm::quat m_rotation;
 
 			glm::mat4 m_transform;
 			glm::mat4 m_oldParentTransform;
@@ -23,7 +23,6 @@ namespace Cygnus3D {
 			Transform *m_parent;
 
 			void updateRotation();
-			void updateTransform();
 
 			glm::vec3 rotate(glm::vec3 axis, glm::quat rotation);
 
@@ -55,6 +54,8 @@ namespace Cygnus3D {
 		protected:
 
 			bool m_hasChanged;
+
+			virtual void updateTransform();
 
 			inline glm::mat4 getCurrentTransform() const { return m_transform; }
 			void setParent(Transform *parent);

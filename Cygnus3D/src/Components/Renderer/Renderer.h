@@ -4,8 +4,7 @@
 #include "../../shaders/shader.h"
 #include "../Camera.h"
 #include "../Scene/Node.h"
-#include "../Lighting/DirectionalLight.h"
-#include "../Lighting/PointLight.h"
+#include "../Lighting/Light.h"
 #include "../Rendering/Quad.h"
 
 #include "../../Debug/DebugDrawer.h"
@@ -15,15 +14,19 @@ namespace Cygnus3D {
 	class Material;
 	class Texture;
 
+	#define MAX_LIGHTS 50
+ 
 	class Renderer{
 
 		friend class RayCast;
 
 	private:
 
+		int m_currentLight;
+		Light *m_lights[MAX_LIGHTS];
+
 		std::vector<Node*> m_renderQueue;
-		std::vector<DirectionalLight*> m_dirLightQueue;
-		std::vector<PointLight*> m_pointLightQueue;
+		unsigned int m_queueSize;
 
 		Shader *m_basicShader, *m_skyboxShader, *m_debugShader;
 		Camera *m_camera;
@@ -31,15 +34,18 @@ namespace Cygnus3D {
 
 		Texture *m_lastTexture;
 		Texture *m_lastSpecular;
-
-		unsigned int m_uniformBuffer;
+		
 		bool m_culling;
+
+		unsigned int m_lightBlock;
+		unsigned int m_uniformBuffer;
 
 		void updateShader(Node *node);
 		void updateLight();
 		void updateClear();
 
-		void createUniformBuffer();
+		void createGlobalUniformBuffer();
+		void createLightUniformBlock();
 		void renderSkybox();
 		void pushRender(std::vector<Node*> childrenNodes);
 		void sortByTexture();
@@ -54,12 +60,13 @@ namespace Cygnus3D {
 		Renderer();
 		~Renderer();
 
+		static glm::vec4 globalAmbient;
+
 		void setCamera(Camera *camera);
 		void setSkybox(Texture *texture);
 		void pushRender(Node *node);
 
-		void pushDirLight(DirectionalLight *light);
-		void pushPointLight(PointLight *light);
+		void pushLight(Light *light);
 
 		inline Camera* getCamera() const { return m_camera; };
 
@@ -67,5 +74,6 @@ namespace Cygnus3D {
 		void render(DebugDrawer *debugDrawer = 0);
 		void update(float deltaTime);
 
+		void clean();
 	};
 }

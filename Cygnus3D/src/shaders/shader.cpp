@@ -13,6 +13,10 @@ namespace Cygnus3D {
 			shaderID = load();
 		}
 
+		Shader::Shader(char const *computePath) {
+			loadCompute(computePath);
+		}
+
 		Shader::~Shader() {
 			glDeleteProgram(shaderID);
 		}
@@ -91,6 +95,38 @@ namespace Cygnus3D {
 
 			return program;
 
+		}
+
+		GLuint Shader::loadCompute(char const *computePath) {
+
+			GLuint program = glCreateProgram();
+			GLuint compute = glCreateShader(GL_COMPUTE_SHADER);
+
+			std::string cs = filesU::readFiles(computePath);
+
+			const char *cSource = cs.c_str();
+
+			glShaderSource(compute, 1, &cSource, NULL);
+			glCompileShader(compute);
+
+			GLint log;
+			glGetShaderiv(compute, GL_COMPILE_STATUS, &log);
+			if (!log) {
+				GLint length;
+				glGetShaderiv(compute, GL_INFO_LOG_LENGTH, &length);
+				std::vector<char> error(length);
+				glGetShaderInfoLog(compute, length, &length, &error[0]);
+				std::cout << "PROBLEM WITH COMPUTE SHADER! " << std::endl << &error[0] << std::endl;
+				return 0;
+			}
+
+			glAttachShader(program, compute);
+			glLinkProgram(program);
+			glValidateProgram(program);
+
+			glDeleteShader(compute);
+
+			return program;
 		}
 
 		//void Shader::setGeometryShader(const char *geometryPath) {

@@ -1,5 +1,4 @@
 #include "Joint.h"
-#include <iostream>
 
 namespace Cygnus3D {
 

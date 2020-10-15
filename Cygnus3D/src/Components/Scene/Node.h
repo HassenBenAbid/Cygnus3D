@@ -72,5 +72,9 @@ namespace Cygnus3D {
 		void setAnimator(Animator *anim);
 		Animator* getAnimator() const { return m_animator; }
 
+	protected:
+
+		void updateTransform() override;
+
 	};
 }

@@ -1,7 +1,6 @@
 #include "Collider.h"
 #include "Node.h"
 #include "../Rendering/Mesh.h"
-#include <iostream>
 
 namespace Cygnus3D {
 

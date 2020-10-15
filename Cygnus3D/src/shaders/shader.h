@@ -17,8 +17,10 @@ namespace Cygnus3D {
 			const char *m_vertexPath, *m_fragmentPath, *m_geometryPath;
 
 			GLuint load();
+			GLuint loadCompute(char const *computePath);
 			GLint getUniformLocation(GLchar const *name);
 		public:
+			Shader(char const *computePath);
 			Shader(char const *vertexPath, char const *fragmentPath);
 			Shader(char const *vertexPath, char const *fragmentPath, char const *geometryPath);
 			~Shader();
@@ -35,6 +37,8 @@ namespace Cygnus3D {
 			void setUniform4f(GLchar const *name, glm::vec4 const &v);
 			void setUniformMat4(GLchar const *name, glm::mat4 const &m);
 			void setUniformMat4(GLchar const *name, std::vector<glm::mat4> const &m, size_t count);
+
+			GLuint getProgram() const { return shaderID; }
 
 		};
 }

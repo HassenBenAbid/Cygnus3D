@@ -1,7 +1,6 @@
 #include "Node.h"
 #include "../Rendering/Mesh.h"
 #include "../Rendering/Material.h"
-#include <iostream>
 
 namespace Cygnus3D {
 
@@ -126,7 +125,7 @@ namespace Cygnus3D {
 
 		}
 
-		if (m_animator != nullptr) m_animator->update(5 * deltaTime, getCurrentTransform()); 
+		if (m_animator != nullptr) m_animator->update(deltaTime); 
 
 	}
 
@@ -185,6 +184,14 @@ namespace Cygnus3D {
 
 	void Node::setAnimator(Animator *anim) {
 		m_animator = anim;
+	}
+
+	void Node::updateTransform() {
+
+		Transform::updateTransform();
+
+		for (int i = 0; i < m_children.size() && m_hasChanged; i++) m_children[i]->m_hasChanged = true;
+
 	}
 
 }
