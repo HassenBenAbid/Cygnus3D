@@ -1,4 +1,5 @@
 #include "Node.h"
+#include "../Lighting/Light.h"
 #include "../Rendering/Mesh.h"
 #include "../Rendering/Material.h"
 
@@ -14,6 +15,7 @@ namespace Cygnus3D {
 
 		m_hasChanged = true;
 		m_focused = false;
+		m_isLightContainer = false;
 	}
 
 	Node::Node() {
@@ -26,6 +28,7 @@ namespace Cygnus3D {
 	Node::~Node() {
 
 		delete m_mesh;
+		delete m_light;
 		delete m_material;
 		m_children.clear();
 
@@ -126,6 +129,7 @@ namespace Cygnus3D {
 		}
 
 		if (m_animator != nullptr) m_animator->update(deltaTime); 
+		if (m_isLightContainer) m_light->position = this->getLocalPosition();
 
 	}
 
@@ -191,6 +195,15 @@ namespace Cygnus3D {
 		Transform::updateTransform();
 
 		for (int i = 0; i < m_children.size() && m_hasChanged; i++) m_children[i]->m_hasChanged = true;
+
+	}
+
+	void Node::makeLightContainer(Light *light) {
+
+		if (light->type != DIRECTIONAL_LIGHT) {
+			m_light = light;
+			m_isLightContainer = true;
+		}
 
 	}
 

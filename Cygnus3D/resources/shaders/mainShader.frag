@@ -137,7 +137,7 @@ void main(){
 		specular *= endLight.specular;
 	}
 	
-	fragColor = vec4((ambient + diffuse + specular).xyz, 1.0f);
+	fragColor = vec4((ambient + emissive + diffuse + specular).xyz, 1.0f);
 
 }
 

@@ -42,7 +42,6 @@ namespace Cygnus3D {
 
 		void updateShader(Node *node);
 		void updateLight();
-		void updateClear();
 
 		void createGlobalUniformBuffer();
 		void createLightUniformBlock();

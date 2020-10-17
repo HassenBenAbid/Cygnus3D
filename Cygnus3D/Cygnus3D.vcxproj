@@ -221,9 +221,7 @@
     <ClInclude Include="src\utils\Utils.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="resources\shaders\basicShader.frag" />
-    <None Include="resources\shaders\basicShader.geo" />
-    <None Include="resources\shaders\basicShader.vert" />
+    <None Include="resources\shaders\mainShader.vert" />
     <None Include="resources\shaders\debugShader.frag" />
     <None Include="resources\shaders\debugShader.geo" />
     <None Include="resources\shaders\debugShader.vert" />

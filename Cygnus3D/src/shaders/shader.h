@@ -28,7 +28,7 @@ namespace Cygnus3D {
 
 			void enable() const;
 			void disable() const;
-			//void setGeometryShader(char const *geometryPath);
+			void setGeometryShader(char const *geometryPath);
 
 			void setUniform1f(GLchar const *name, float f);
 			void setUniform1i(GLchar const *name, int i);

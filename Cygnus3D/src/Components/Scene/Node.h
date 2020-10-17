@@ -9,6 +9,7 @@ namespace Cygnus3D {
 
 	class Mesh;
 	class Material;
+	struct Light;
 
 	class Node : public Transform {
 
@@ -23,11 +24,13 @@ namespace Cygnus3D {
 
 		Collider *m_collider;
 		Animator *m_animator;
+		Light *m_light;
 
 		Node *m_nodeParent;
 		std::vector<Node*> m_children;
 
 		bool m_focused;
+		bool m_isLightContainer;
 
 		void childrenTransformChange(Node* node);
 
@@ -71,6 +74,9 @@ namespace Cygnus3D {
 
 		void setAnimator(Animator *anim);
 		Animator* getAnimator() const { return m_animator; }
+
+		void makeLightContainer(Light *light);
+		//inline Light* getLight() const { return m_light; }
 
 	protected:
 

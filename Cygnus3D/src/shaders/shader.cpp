@@ -129,33 +129,33 @@ namespace Cygnus3D {
 			return program;
 		}
 
-		//void Shader::setGeometryShader(const char *geometryPath) {
-		//
-		//	GLuint geometry = glCreateShader(GL_GEOMETRY_SHADER);
-		//
-		//	std::string vg = filesU::readFiles(geometryPath);
-		//	const char *gSource = vg.c_str();
-		//
-		//	glShaderSource(geometry, 1, &gSource, NULL);
-		//	glCompileShader(geometry);
-		//
-		//	GLint log;
-		//	glGetShaderiv(geometry, GL_COMPILE_STATUS, &log);
-		//	if (!log) {
-		//		GLint length;
-		//		glGetShaderiv(geometry, GL_INFO_LOG_LENGTH, &length);
-		//		std::vector<char> error(length);
-		//		glGetShaderInfoLog(geometry, length, &length, &error[0]);
-		//		std::cout << "PROBLEM WITH GEOMETRY SHADER! " << std::endl << &error[0] << std::endl;
-		//		return ;
-		//	}
-		//
-		//	glAttachShader(shaderID, geometry);
-		//	glLinkProgram(shaderID);
-		//	glValidateProgram(shaderID);
-		//
-		//	glDeleteShader(geometry);
-		//}
+		void Shader::setGeometryShader(const char *geometryPath) {
+		
+			GLuint geometry = glCreateShader(GL_GEOMETRY_SHADER);
+		
+			std::string vg = filesU::readFiles(geometryPath);
+			const char *gSource = vg.c_str();
+		
+			glShaderSource(geometry, 1, &gSource, NULL);
+			glCompileShader(geometry);
+		
+			GLint log;
+			glGetShaderiv(geometry, GL_COMPILE_STATUS, &log);
+			if (!log) {
+				GLint length;
+				glGetShaderiv(geometry, GL_INFO_LOG_LENGTH, &length);
+				std::vector<char> error(length);
+				glGetShaderInfoLog(geometry, length, &length, &error[0]);
+				std::cout << "PROBLEM WITH GEOMETRY SHADER! " << std::endl << &error[0] << std::endl;
+				return ;
+			}
+		
+			glAttachShader(shaderID, geometry);
+			glLinkProgram(shaderID);
+			glValidateProgram(shaderID);
+		
+			glDeleteShader(geometry);
+		}
 
 		void Shader::enable() const{
 			glUseProgram(shaderID);

@@ -11,10 +11,11 @@ namespace Cygnus3D {
 
 	Renderer::Renderer() {
 		
-		m_basicShader = new Shader("resources/shaders/basicShader.vert", "resources/shaders/mainShader.frag");
+		m_basicShader = new Shader("resources/shaders/mainShader.vert", "resources/shaders/mainShader.frag");
 		m_skyboxShader = new Shader("resources/shaders/skybox.vert", "resources/shaders/skybox.frag");
 
 		m_debugShader = new Shader("resources/shaders/debugShader.vert", "resources/shaders/debugShader.frag");
+		//m_debugShader->setGeometryShader("resources/shaders/debugShader.geo");
 
 		m_culling = false;
 		createGlobalUniformBuffer();
@@ -66,14 +67,15 @@ namespace Cygnus3D {
 				glDisable(GL_CULL_FACE);
 				m_culling = false;
 			}
-
+			
 			m_skyboxShader->enable();
-
+			
 			glm::mat4 view = glm::mat4(glm::mat3(m_camera->getViewMatrix()));
-			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
+			m_skyboxShader->setUniformMat4("vw_matrix", view);
+
 			m_skybox->getMaterial()->getDiffuseTexture()->bind();
 			m_skyboxShader->setUniform1i("skybox", m_skybox->getMaterial()->getDiffuseTexture()->getTextureID());
-
+			
 			glBindVertexArray(m_skybox->getMesh()->vao);
 			glDrawElements(m_skybox->getMesh()->m_topology, m_skybox->getMesh()->m_indices.size(), GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
@@ -178,20 +180,6 @@ namespace Cygnus3D {
 			glBufferSubData(GL_UNIFORM_BUFFER, sizeof(Light) * i, sizeof(Light), m_lights[i]);
 		}
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-		//m_basicShader->setUniform1i("lightNumber", m_lights.size());
-		//m_basicShader->setUniform3f("viewPosition", m_camera->getLocalPosition());
-		//
-		//m_basicShader->setUniform1i("allLights[0].type", m_lights[0]->type);
-		//m_basicShader->setUniform1i("allLights[0].enabled", m_lights[0]->enabled);
-		//
-		//m_basicShader->setUniform4f("allLights[0].color", m_lights[0]->color);
-		//m_basicShader->setUniform3f("allLights[0].position", m_lights[0]->position);
-		//m_basicShader->setUniform3f("allLights[0].direction", m_lights[0]->direction);
-		//
-		//m_basicShader->setUniform1f("allLights[0].range", m_lights[0]->range);
-		//m_basicShader->setUniform1f("allLights[0].intensity", m_lights[0]->intensity);
-		//m_basicShader->setUniform1f("allLights[0].spotLightAngle", m_lights[0]->spotLightAngle);
 	}
 
 	void Renderer::updateShader(Node *node) {
@@ -249,10 +237,6 @@ namespace Cygnus3D {
 
 	}
 
-	void Renderer::updateClear() {
-
-	}
-
 	void Renderer::renderThisQueue(std::vector<Node*> queue) {
 		for (int i = 0; i < m_queueSize; i++) {
 			if (queue[i]->getMesh()) {
@@ -272,28 +256,6 @@ namespace Cygnus3D {
 				glDrawElements(queue[i]->getMesh()->m_topology, queue[i]->getMesh()->m_indices.size(), GL_UNSIGNED_INT, 0);
 				glBindVertexArray(0);
 
-				//if (queue[i]->isFocused()) {
-				//
-				//	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-				//	glStencilMask(0x00);
-				//	m_basicShader->setUniform1i("singleColor", 1);
-				//	queue[i]->getLocalScale() += glm::vec3(0.05f, 0.05f, 0.05f);
-				//	
-				//	m_basicShader->setUniformMat4("ml_matrix", queue[i]->getTransformMatrix());
-				//	
-				//	glBindVertexArray(queue[i]->getMesh()->vao);
-				//	glDrawElements(queue[i]->getMesh()->m_topology, queue[i]->getMesh()->m_indices.size(), GL_UNSIGNED_INT, 0);
-				//	glBindVertexArray(0);	
-				//	
-				//	queue[i]->getLocalScale() -= glm::vec3(0.05f, 0.05f, 0.05f);
-				//	m_basicShader->setUniform1i("singleColor", 0);
-				//	
-				//	glStencilFunc(GL_ALWAYS, 1, 0xFF);
-				//	glStencilMask(0xFF);
-				//
-				//
-				//}
-
 			}
 			else {
 				if (queue[i]->getAnimator() != nullptr) {
@@ -302,6 +264,23 @@ namespace Cygnus3D {
 				}
 			}
 		}
+
+		//for (int i = 0; i < m_queueSize; i++) {
+		//	if (queue[i]->getMesh()) {
+		//
+		//		m_debugShader->enable();
+		//
+		//		m_debugShader->setUniformMat4("ml_matrix", m_renderQueue[i]->getTransformMatrix());
+		//
+		//		glBindVertexArray(queue[i]->getMesh()->vao);
+		//		glDrawElements(queue[i]->getMesh()->m_topology, queue[i]->getMesh()->m_indices.size(), GL_UNSIGNED_INT, 0);
+		//		glBindVertexArray(0);
+		//
+		//		m_debugShader->disable();
+		//
+		//	}
+		//}
+
 	}
 
 	void Renderer::render(DebugDrawer *debugDrawer) {
@@ -325,8 +304,6 @@ namespace Cygnus3D {
 
 		PostProcessing::end();
 
-		//updateClear();
-
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	}
 
@@ -341,19 +318,12 @@ namespace Cygnus3D {
 
 	void Renderer::createLightUniformBlock() {
 
-		//m_basicShader->enable();
-		//
-		//GLuint locationUniform = glGetUniformBlockIndex(m_basicShader->getProgram(), "lightBlock");
-		//glUniformBlockBinding(m_basicShader->getProgram(), locationUniform, 10);
-
 		glGenBuffers(1, &m_lightBlock);
 		glBindBuffer(GL_UNIFORM_BUFFER, m_lightBlock);
 		glBufferData(GL_UNIFORM_BUFFER, sizeof(Light) * MAX_LIGHTS, NULL, GL_STATIC_DRAW);
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 		glBindBufferBase(GL_UNIFORM_BUFFER, 1, m_lightBlock);
-
-		//m_basicShader->disable();
 	}
 
 	void Renderer::update(float deltaTime) {
@@ -366,8 +336,6 @@ namespace Cygnus3D {
 		for (int i = 0; i <= MAX_LIGHTS; i++) {
 			delete m_lights[i];
 		}
-
-		//m_lights.clear();
 	}
 
 }

@@ -1,5 +1,5 @@
 #include "Mesh.h"
-
+#include <iostream>
 namespace Cygnus3D {
 
 	Mesh::Mesh(std::vector<glm::vec3> &positions, std::vector<unsigned int> &indices):

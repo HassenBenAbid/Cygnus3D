@@ -31,7 +31,7 @@ out DATA{
 void main(){
 
 	vec4 currentPosition = vec4(position, 1.0f);
-	vec3 currentNormal = normal;
+	vec4 currentNormal = vec4(normal, 0.0f);
 
 	if (hasBones){
 		
@@ -40,13 +40,14 @@ void main(){
 		bonesTransformation += bonesMatrix[boneID[2]] * boneWeight[2];
 		
 		currentPosition = bonesTransformation * currentPosition;
+		currentNormal = bonesTransformation * currentNormal;
 
 	}
 
 	gl_Position = pr_matrix * vw_matrix * ml_matrix * currentPosition;
 	
 	dataOut.pos = position;
-	dataOut.normal = mat3(ml_matrix) * currentNormal;
+	dataOut.normal = mat3(ml_matrix) * vec3(currentNormal);
 	dataOut.texCoord = texCoord;
 
 	dataOut.fragPos = vec3(ml_matrix * vec4(position, 1.0f));

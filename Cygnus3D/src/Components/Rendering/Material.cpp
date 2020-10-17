@@ -5,7 +5,7 @@ namespace Cygnus3D {
 	Material::Material(){
 		diffuseColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 		specularColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-		emissiveColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		emissiveColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
 		opacity = 1.0f;
 		bumpIntensity = 0;
